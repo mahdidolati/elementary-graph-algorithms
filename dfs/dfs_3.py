@@ -2,7 +2,7 @@ from manim import *
 from util.util import LinedCode, GridNetwork, AnimStack
 
 
-class PopBeforeDfs(Scene):
+class Dfs(Scene):
     def __init__(self, *args, **kwargs):
         super(Dfs, self).__init__(*args, **kwargs)
         self.dfs_code = None
