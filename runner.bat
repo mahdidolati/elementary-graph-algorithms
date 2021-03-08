@@ -12,5 +12,6 @@ if %1==3b1b (
 	cd ..\m_examples
 ) else (
 	echo "doing community version"
-	manim %1 %2 -p --high_quality
+	set PYTHONPATH=%PYTHONPATH%;.
+	manim %1 %2 -pql
 )

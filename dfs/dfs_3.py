@@ -1,10 +1,10 @@
 from manim import *
-from util import LinedCode, AnimQueue, GridNetwork, AnimStack
+from util.util import LinedCode, GridNetwork, AnimStack
 
 
-class DFS(Scene):
+class PopBeforeDfs(Scene):
     def __init__(self, *args, **kwargs):
-        super(DFS, self).__init__(*args, **kwargs)
+        super(Dfs, self).__init__(*args, **kwargs)
         self.dfs_code = None
         self.grid = None
         self.a_mark = None
