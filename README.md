@@ -7,7 +7,7 @@ As a byproduct, I try to gain a deeper insight into basic graph algorithms by ex
 You need the Manim engine (community edition) to run the codes. 
 Please refer to installation instructions at the [Manim GitHub repository](https://github.com/ManimCommunity/manim/). 
 
-## Execution
+## Usage
 Execute the following command to run a specific example:
 
 ```
