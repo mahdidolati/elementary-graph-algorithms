@@ -18,4 +18,7 @@ You should change the `runner.bat` file to select the video quality.
 * `-ql`: Low quality
 * `--high-quality`: High quality
 
+## License & copyright
+&copy; Mahdi Dolati
+
  
