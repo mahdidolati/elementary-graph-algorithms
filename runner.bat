@@ -6,12 +6,12 @@
 @echo off
 
 if %1==3b1b (
-	echo "doing 3b1b"
+	echo "using 3b1b"
 	cd ..\manim-3b1b
 	python -m manim ..\m_examples\%2 %3 -pql
 	cd ..\m_examples
 ) else (
-	echo "doing community version"
+	echo "using community version"
 	set PYTHONPATH=%PYTHONPATH%;.
 	manim %1 %2 -pql
 )
