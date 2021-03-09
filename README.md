@@ -4,8 +4,8 @@ My main goal is playing with the Manim animation engine.
 As a byproduct, I try to gain a deeper insight into basic graph algorithms by exploring their different variations.
 
 ## Installation
-You need [Manim](https://github.com/ManimCommunity/manim/) engine (community edition) to run the codes. 
-Please refer to installation instructions at Manim GitHub repository. 
+You need the [Manim](https://github.com/ManimCommunity/manim/) engine (community edition) to run the codes. 
+Please refer to installation instructions at the Manim GitHub repository. 
 
 ## Execution
 Execute the following command to run a specific example:
