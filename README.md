@@ -21,4 +21,4 @@ You should change the `runner.bat` file to select the video quality.
 ## License & copyright
 &copy; Mahdi Dolati
 
- 
+Licensed under the [MIT License](LICENSE).
