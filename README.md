@@ -1,6 +1,6 @@
 # Elementary Graph Algorithms
 This repository keeps the codes to generate videos in my "[Elementary Graph Algorithms](https://www.youtube.com/watch?v=YWOhCa58e3I&list=PLWkTpUb3t-2zqd2t4j47Wbw1GsxuQKmdX&ab_channel=MahdiDolati)" playlist.
-The goal of videos is mainly playing with the Manim animation engine. 
+My main goal is playing with the Manim animation engine. 
 As a byproduct, I try to gain a deeper insight into basic graph algorithms by exploring their different variations.
 
 ## Installation
