@@ -12,3 +12,9 @@ Execute the following command to run a specific example:
 ```
 runner.bat .\path\to\python\file.py ClassName
 ```
+
+You should change the `runner.bat` file to select the video quality.
+* `-ql`: Low quality
+* `--high-quality`: High quality
+
+ 
