@@ -1,5 +1,7 @@
 from manim import *
 import networkx as nx
+import json
+import ast
 
 
 class AnimQueue:
@@ -95,43 +97,42 @@ class LinedCode:
 
 
 class GridNetwork(nx.Graph):
-    def __init__(self, n_row, n_col, **attr):
+    def __init__(self, topo_file, configs, **attr):
         super().__init__(**attr)
-        radius = 0.4
-        for i in range(n_row):
-            for j in range(n_col):
-                self.add_node((i,j), circle=None, id=i*n_col+j, label=None, neighbors=None)
-                if i > 0:
-                    self.add_edge((i, j), (i - 1, j), line=None)
-                if j > 0:
-                    self.add_edge((i, j), (i, j - 1), line=None)
-        down_shift = 0.2
-        right_shift = 1.0
-        for n in self.nodes():
-            c = Circle(radius=radius)
-            c.move_to(1.4 * DOWN * (n[0] + down_shift) + 1.4 * RIGHT * (n[1] - n_col/2 + right_shift))
-            c.set_fill(PINK, opacity=0.5)
-            self.nodes[n]["circle"] = c
-            #
-            n_eq = Tex("$%d$" % self.nodes[n]["id"])
-            n_eq.move_to(c.get_center())
-            self.nodes[n]["label"] = n_eq
-        for e in self.edges():
-            if e[0][0] < e[1][0]:
-                r1 = self.nodes[e[0]]["circle"].get_center() - [0, self.nodes[e[0]]["circle"].radius, 0]
-                r2 = self.nodes[e[1]]["circle"].get_center() + [0, self.nodes[e[0]]["circle"].radius, 0]
-            elif e[0][1] < e[1][1]:
-                r1 = self.nodes[e[0]]["circle"].get_center() + [self.nodes[e[0]]["circle"].radius, 0, 0]
-                r2 = self.nodes[e[1]]["circle"].get_center() - [self.nodes[e[0]]["circle"].radius, 0, 0]
-            elif e[1][0] < e[0][0]:
-                r1 = self.nodes[e[1]]["circle"].get_center() - [0, self.nodes[e[0]]["circle"].radius, 0]
-                r2 = self.nodes[e[0]]["circle"].get_center() + [0, self.nodes[e[0]]["circle"].radius, 0]
-            elif e[1][1] < e[0][1]:
-                r1 = self.nodes[e[1]]["circle"].get_center() + [self.nodes[e[0]]["circle"].radius, 0, 0]
-                r2 = self.nodes[e[0]]["circle"].get_center() - [self.nodes[e[0]]["circle"].radius, 0, 0]
-
-            line = Line(r1, r2).set_color(RED)
-            self.edges[e]["line"] = line
+        radius = configs["radius"] if "radius" in configs else 0.35
+        shift = configs["shift"] if "shift" in configs else 0 * RIGHT
+        weights = iter([1, 3, 7, 2, 11, 8, 4, 9, 12, 10, 5, 6])
+        n_col = 3
+        with open(topo_file) as json_file:
+            data = json.load(json_file)
+            for n in data["nodes"]:
+                nv = ast.literal_eval(n)
+                self.add_node(nv, circle=None, id=nv[0] * n_col + nv[1], label=None, neighbors=None)
+                c = Circle(radius=radius)
+                c.move_to(1.5 * DOWN * nv[0] + 1.5 * RIGHT * (nv[1] - n_col / 2) + shift)
+                c.set_fill(PINK, opacity=0.5)
+                self.nodes[nv]["circle"] = c
+                #
+                n_eq = Tex("$%d$" % self.nodes[nv]["id"])
+                n_eq.move_to(c.get_center())
+                self.nodes[nv]["label"] = n_eq
+            for n1 in data["edges"]:
+                for n2 in data["edges"][n1]:
+                    n1v = ast.literal_eval(n1)
+                    n2v = ast.literal_eval(n2)
+                    self.add_edge(n1v, n2v, line=None, w=next(weights), w_label=None)
+                    #
+                    r1, r2 = self.get_line_coords(n1v, n2v)
+                    line = Line(r1, r2).set_color(RED)
+                    self.edges[(n1v, n2v)]["line"] = line
+                    #
+                    if ast.literal_eval(data["weighted"]) and "weighted" in configs and configs["weighted"]:
+                        wl = Tex("$%d$" % self.edges[(n1v, n2v)]["w"]).scale(0.8)
+                        if "wxs" in data["edges"][n1][n2]:
+                            wl.move_to((r1 + r2) / 2 + data["edges"][n1][n2]["wxs"] * RIGHT * 0.3)
+                        if "wys" in data["edges"][n1][n2]:
+                            wl.move_to((r1 + r2) / 2 + data["edges"][n1][n2]["wys"] * DOWN * 0.3)
+                        self.edges[(n1v, n2v)]["w_label"] = wl
 
     def get_line_coords(self, src_node, dst_node):
         if src_node[0] < dst_node[0]:

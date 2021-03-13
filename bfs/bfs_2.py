@@ -29,7 +29,7 @@ class Bfs(Scene):
         for c in bfs1_code.code_tex:
             self.add(c)
 
-        grid = GridNetwork(3, 3)
+        grid = GridNetwork(".\\util\\grid_topo", {"shift": 2.5 * RIGHT + 0.2 * DOWN})
         for e in grid.edges():
             self.add(grid.edges[e]["line"])
         for n in grid.nodes():

@@ -44,7 +44,7 @@ class Dfs(Scene):
         for c in self.dfs_code.code_tex:
             self.add(c)
 
-        self.grid = GridNetwork(3, 3)
+        self.grid = GridNetwork(".\\util\\grid_topo", {"shift": 2.5 * RIGHT + 0.2 * DOWN})
         for e in self.grid.edges():
             self.add(self.grid.edges[e]["line"])
         for n in self.grid.nodes():
