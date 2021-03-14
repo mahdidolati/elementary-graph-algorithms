@@ -4,6 +4,50 @@ import json
 import ast
 
 
+class Node:
+    def __init__(self, id, label, priority):
+        self.id = id
+        self.priority = priority
+        self.n_eq = Tex("$\\frac{%s}{%s}$" % (str(label), str(priority)))
+
+
+class AnimPriorityQueue:
+    def __init__(self, q_head, q_screen):
+        self.q_head = q_head
+        self.q_screen = q_screen
+        self.content = []
+
+    def enqueue(self, id, label, priority):
+        i = 0
+        while i < len(self.content):
+            if self.content[i].priority >= priority:
+                break
+            else:
+                i += 1
+        vg = VGroup()
+        vg.add(*[x.n_eq for x in self.content[i:]])
+        self.q_screen.play(ApplyMethod(vg.shift, RIGHT))
+        n = Node(id, label, priority)
+        n.n_eq.move_to(self.q_head + i * RIGHT)
+        self.q_screen.play(Write(n.n_eq))
+        self.content = self.content[0:i] + [n] + self.content[i:]
+
+    def dequeue(self, h_callback=None):
+        h = None
+        if len(self.content) > 0:
+            h = self.content[0]
+            if h_callback is not None:
+                h_callback(h)
+            self.content = self.content[1:]
+            vg = VGroup()
+            vg.add(*[x.n_eq for x in self.content])
+            self.q_screen.play(ApplyMethod(vg.shift, LEFT))
+        return h
+
+    def is_empty(self):
+        return len(self.content) == 0
+
+
 class AnimQueue:
     def __init__(self, cur_tail, q_screen):
         self.cur_tail = cur_tail
@@ -101,7 +145,7 @@ class GridNetwork(nx.Graph):
         super().__init__(**attr)
         radius = configs["radius"] if "radius" in configs else 0.35
         shift = configs["shift"] if "shift" in configs else 0 * RIGHT
-        weights = iter([1, 3, 7, 2, 11, 8, 4, 9, 12, 10, 5, 6])
+        weights = iter([1, 11, 7, 6, 8, 3, 2, 9, 12, 5, 4, 10])
         n_col = 3
         with open(topo_file) as json_file:
             data = json.load(json_file)
@@ -113,7 +157,7 @@ class GridNetwork(nx.Graph):
                 c.set_fill(PINK, opacity=0.5)
                 self.nodes[nv]["circle"] = c
                 #
-                n_eq = Tex("$%d$" % self.nodes[nv]["id"])
+                n_eq = Tex("$v_%d$" % self.nodes[nv]["id"])
                 n_eq.move_to(c.get_center())
                 self.nodes[nv]["label"] = n_eq
             for n1 in data["edges"]:
