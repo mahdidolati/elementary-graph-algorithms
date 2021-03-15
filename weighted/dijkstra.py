@@ -98,21 +98,26 @@ class Dijkstra(Scene):
         parent = {}
         h = None
         code.highlight([1])
+
+        def pop_anim(x):
+            if x.id in visited:
+                self.play(ApplyMethod(x.n_eq.shift, DOWN), run_time=0.75)
+            elif x.id not in parent:
+                self.play(ApplyMethod(x.n_eq.shift, DOWN),
+                          ApplyMethod(grid.nodes[x.id]["circle"].set_color, BLUE),
+                          run_time=0.75)
+            else:
+                self.play(ApplyMethod(x.n_eq.shift, DOWN),
+                          ApplyMethod(grid.nodes[x.id]["circle"].set_color, BLUE),
+                          ApplyMethod(grid.edges[(x.id, parent[x.id])]["line"].set_color, YELLOW),
+                          run_time=0.75)
+
         while not q.is_empty():
             code.highlight([2])
             if h is not None:
                 self.play(FadeOut(h.n_eq))
 
-            h = q.dequeue(lambda x: self.play(ApplyMethod(x.n_eq.shift, DOWN), run_time=0.75)
-                                    if x.id in visited else
-                                    self.play(ApplyMethod(x.n_eq.shift, DOWN),
-                                              ApplyMethod(grid.nodes[x.id]["circle"].set_color, BLUE),
-                                              run_time=0.75)
-                                    if x.id not in parent else
-                                    self.play(ApplyMethod(x.n_eq.shift, DOWN),
-                                              ApplyMethod(grid.nodes[x.id]["circle"].set_color, BLUE),
-                                              ApplyMethod(grid.edges[(x.id, parent[x.id])]["line"].set_color, YELLOW),
-                                              run_time=0.75))
+            h = q.dequeue(pop_anim)
 
             code.highlight([3])
             if h.id not in visited:
