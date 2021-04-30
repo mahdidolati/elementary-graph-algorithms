@@ -53,6 +53,7 @@ class Spring:
 
 class SoftRectangle:
     def __init__(self, w, h):
+        self.lines = set()
         self.g = nx.Graph()
         for i in range(w):
             for j in range(h):
@@ -68,37 +69,47 @@ class SoftRectangle:
     def step(self, dt):
         for n in self.g.nodes():
             self.g.nodes[n]['p'].reset_force()
-            self.g.nodes[n]['p'].set_force_gravity()
+            # self.g.nodes[n]['p'].set_force_gravity()
         for e in self.g.edges():
             self.g.edges[e]['s'].set_force_spring()
         for n in self.g.nodes():
             self.g.nodes[n]['p'].set_velocity(dt)
             self.g.nodes[n]['p'].set_position(dt)
+
+    def move_atom(self, n, d):
+        self.g.nodes[n]['p'].position += d
+
+    def move_anim(self, q_screen):
+        for l in self.lines:
+            q_screen.remove(l)
+        for e in self.g.edges():
+            e1 = self.g.nodes[e[0]]['p'].position[0, 0] * RIGHT + self.g.nodes[e[0]]['p'].position[1, 0] * UP
+            e2 = self.g.nodes[e[1]]['p'].position[0, 0] * RIGHT + self.g.nodes[e[1]]['p'].position[1, 0] * UP
+            l = Line(e1, e2).set_color(PINK).set_opacity(0.5)
+            self.lines.add(l)
+            q_screen.add(l)
+        for n in self.g.nodes():
             self.g.nodes[n]['c'].move_to(
                 self.g.nodes[n]['p'].position[0, 0] * RIGHT +
                 self.g.nodes[n]['p'].position[1, 0] * UP
             )
 
-    def move_atom(self, n, d):
-        self.g.nodes[n]['p'].position += d
-        self.g.nodes[n]['c'].move_to(
-            self.g.nodes[n]['p'].position[0, 0] * RIGHT +
-            self.g.nodes[n]['p'].position[1, 0] * UP
-        )
-
 
 class SoftBody(Scene):
     def construct(self):
-        s = SoftRectangle(2, 1)
+        s = SoftRectangle(2, 2)
         for n in s.g.nodes():
             self.add(s.g.nodes[n]['c'])
+        s.move_anim(self)
         self.wait(1)
 
         s.move_atom((0, 0), np.array([-0.5, 0], dtype='float64').reshape((2, 1)))
         s.move_atom((1, 0), np.array([0.5, 0], dtype='float64').reshape((2, 1)))
+        s.move_anim(self)
         self.wait(1)
 
         dt = 0.05
-        for _ in range(500):
+        for _ in range(700):
             s.step(dt)
+            s.move_anim(self)
             self.wait(2 * dt)
