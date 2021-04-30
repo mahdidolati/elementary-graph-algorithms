@@ -8,7 +8,7 @@ class Dijkstra(Scene):
 
     def construct(self):
         bfs1 = Tex(
-            "Dijkstra's single-source shortest path algorithm:" + "\\\\",
+            "Dijkstra's single-source shortest paths algorithm:" + "\\\\",
             r"The algorithm selects the unmarked node with the shortest" + "\\\\",
             r"distance from the source and uses it to compute shorter" + "\\\\",
             r"paths to that node's neighbors. Then, the selected node" + "\\\\",
@@ -76,7 +76,7 @@ class Dijkstra(Scene):
         grid.nodes[(0, 0)]["circle"].set_color(GREEN)
         self.play(ApplyMethod(grid.nodes[(0, 0)]["circle"].scale, 1.1), run_time=0.25)
         q = AnimPriorityQueue(q_coord, self)
-        q.enqueue((0, 0), "v_%d" %grid.nodes[(0,0)]["id"], 0)
+        q.enqueue((0, 0), "v_%d" % grid.nodes[(0, 0)]["id"], 0)
         self.play(ApplyMethod(grid.nodes[(0, 0)]["circle"].scale, 1.0 / 1.1), run_time=0.5)
 
         a = Arrow(q_coord + 1.1 * RIGHT + 0.2 * UP, q_coord + 0.1 * RIGHT + 0.2 * UP)

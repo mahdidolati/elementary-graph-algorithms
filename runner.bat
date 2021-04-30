@@ -1,3 +1,4 @@
+:: anaconda -> manim env -> get a terminal
 :: runner.bat 3b1b 1_BFS\main.py BFS
 :: runner.bat 1_BFS\main.py BFS
 :: -pql flags for low quality render
