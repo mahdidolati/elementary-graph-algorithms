@@ -1,6 +1,7 @@
 from manim import *
 import numpy as np
 import networkx as nx
+from util.util import Geometry
 
 
 def to_coord(v):
@@ -30,8 +31,8 @@ class Polygon:
             q_screen.add(l)
 
     def point_inside(self, p):
-        x = p[0, 0]
-        y = p[1, 0]
+        x = p[0]
+        y = p[1]
         n = 0
         for e in self.shape.edges():
             if e[0][0] < x < e[1][0] or e[1][0] < x < e[0][0]:
@@ -41,19 +42,35 @@ class Polygon:
         return n % 2 != 0
 
     def get_intersection(self, p1, p2):
-        pass
+        g = Geometry()
+        for e in self.shape.edges():
+            r = g.get_intersection(e, [p1, p2])
+            if r is not None:
+                if e[0][0] < r[0] < e[1][0] and e[0][1] < r[1] < e[1][1]:
+                    print(e, p1, p2, r)
+                    return r
+                if e[1][0] < r[0] < e[0][0] and e[1][1] < r[1] < e[0][1]:
+                    print(e, p1, p2, r)
+                    return r
+                if e[1][0] < r[0] < e[0][0] and e[0][1] < r[1] < e[1][1]:
+                    print(e, p1, p2, r)
+                    return r
+                if e[1][0] < r[0] < e[0][0] and e[0][1] < r[1] < e[1][1]:
+                    print(e, p1, p2, r)
+                    return r
+        return None
 
 
 class Point:
     def __init__(self, x, y):
         self.id = (x, y)
-        self.position = np.array([x, y], dtype='float64').reshape((2, 1))
-        self.velocity = np.zeros((2, 1), dtype='float64')
-        self.force = np.zeros((2, 1), dtype='float64')
+        self.position = np.array([x, y], dtype='float64')
+        self.velocity = np.zeros(2, dtype='float64')
+        self.force = np.zeros(2, dtype='float64')
         self.mass = np.random.uniform(1, 2, 1)[0]
 
     def set_force_gravity(self):
-        self.force[0, 0] = self.force[0, 0] - self.mass * 0.3
+        self.force[0] = self.force[0] - self.mass * 0.3
 
     def set_velocity(self, dt):
         self.velocity = self.velocity + self.force * dt / self.mass
@@ -62,13 +79,13 @@ class Point:
         self.position = self.position + self.velocity * dt
 
     def reset_force(self):
-        self.force = np.zeros((2, 1), dtype='float64')
+        self.force = np.zeros(2, dtype='float64')
 
     def apply_force(self, fd, f):
-        unit_x = np.array([1, 0], dtype='float64').reshape((2, 1))
-        unit_y = np.array([0, 1], dtype='float64').reshape((2, 1))
-        self.force[0, 0] = self.force[0, 0] + np.dot(np.transpose(unit_x), fd) * f
-        self.force[1, 0] = self.force[1, 0] + np.dot(np.transpose(unit_y), fd) * f
+        unit_x = np.array([1, 0], dtype='float64')
+        unit_y = np.array([0, 1], dtype='float64')
+        self.force[0] = self.force[0] + np.dot(unit_x, fd) * f
+        self.force[1] = self.force[1] + np.dot(unit_y, fd) * f
 
     def get_next_position(self, dt):
         v = self.velocity + self.force * dt / self.mass
@@ -120,8 +137,11 @@ class SoftRectangle:
 
     def update_positions(self, dt, p):
         for n in self.g.nodes():
-            if p.point_inside(self.g.nodes[n]['p'].get_next_position(dt)):
-                pass
+            c_p = self.g.nodes[n]['p'].position
+            n_p = self.g.nodes[n]['p'].get_next_position(dt)
+            if p.point_inside(n_p):
+                t = p.get_intersection(c_p, n_p)
+                self.g.nodes[n]['p'].position = np.array(t, dtype='float64')
             else:
                 self.g.nodes[n]['p'].set_velocity(dt)
                 self.g.nodes[n]['p'].set_position(dt)
@@ -133,15 +153,15 @@ class SoftRectangle:
         for l in self.lines:
             q_screen.remove(l)
         for e in self.g.edges():
-            e1 = self.g.nodes[e[0]]['p'].position[0, 0] * RIGHT + self.g.nodes[e[0]]['p'].position[1, 0] * UP
-            e2 = self.g.nodes[e[1]]['p'].position[0, 0] * RIGHT + self.g.nodes[e[1]]['p'].position[1, 0] * UP
+            e1 = self.g.nodes[e[0]]['p'].position[0] * RIGHT + self.g.nodes[e[0]]['p'].position[1] * UP
+            e2 = self.g.nodes[e[1]]['p'].position[0] * RIGHT + self.g.nodes[e[1]]['p'].position[1] * UP
             l = Line(e1, e2).set_color(PINK).set_opacity(0.5)
             self.lines.add(l)
             q_screen.add(l)
         for n in self.g.nodes():
             self.g.nodes[n]['c'].move_to(
-                self.g.nodes[n]['p'].position[0, 0] * RIGHT +
-                self.g.nodes[n]['p'].position[1, 0] * UP
+                self.g.nodes[n]['p'].position[0] * RIGHT +
+                self.g.nodes[n]['p'].position[1] * UP
             )
 
 
@@ -158,8 +178,8 @@ class SoftBody(Scene):
         p.draw(self)
         self.wait(1)
 
-        s.move_atom((0, 0), np.array([-0.5, 0], dtype='float64').reshape((2, 1)))
-        s.move_atom((1, 0), np.array([0.5, 0], dtype='float64').reshape((2, 1)))
+        s.move_atom((0, 0), np.array([-0.5, 0], dtype='float64'))
+        s.move_atom((1, 0), np.array([0.5, 0], dtype='float64'))
         s.move_anim(self)
         self.wait(1)
 
