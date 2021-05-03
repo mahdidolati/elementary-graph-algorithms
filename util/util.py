@@ -9,20 +9,48 @@ class Geometry:
         pass
 
     def get_intersection(self, line1, line2):
-        xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+        xdiff = np.array([line1[0][0, 0] - line1[1][0, 0], line2[0][0, 0] - line2[1][0, 0]]).reshape((2, 1))
+        ydiff = np.array([line1[0][1, 0] - line1[1][1, 0], line2[0][1, 0] - line2[1][1, 0]]).reshape((2, 1))
 
         def det(a, b):
-            return a[0] * b[1] - a[1] * b[0]
+            return a[0, 0] * b[1, 0] - a[1, 0] * b[0, 0]
 
         div = det(xdiff, ydiff)
         if div == 0:
-           return None
+            return None
 
-        d = (det(*line1), det(*line2))
+        d = np.array([det(*line1), det(*line2)]).reshape((2, 1))
         x = det(d, xdiff) / div
         y = det(d, ydiff) / div
-        return x, y
+        return np.array([x, y]).reshape((2, 1))
+
+    def get_line_segment_intersection(self, line1, line2):
+        r = self.get_intersection(line1, line2)
+        if r is not None:
+            if line1[0][0, 0] <= r[0, 0] <= line1[1][0, 0] and line1[0][1, 0] <= r[1, 0] <= line1[1][1, 0]:
+                return r
+            if line1[1][0, 0] <= r[0, 0] <= line1[0][0, 0] and line1[1][1, 0] <= r[1, 0] <= line1[0][1, 0]:
+                return r
+            if line1[1][0, 0] <= r[0, 0] <= line1[0][0, 0] and line1[0][1, 0] <= r[1, 0] <= line1[1][1, 0]:
+                return r
+            if line1[0][0, 0] <= r[0, 0] <= line1[1][0, 0] and line1[1][1, 0] <= r[1, 0] <= line1[0][1, 0]:
+                return r
+        return None
+
+    # r = d - 2 (d.n) n
+    def get_reflection(self, line1, line2):
+        r1 = self.get_line_segment_intersection(line1, line2)
+        if r1 is not None:
+            p_line = [[line1[0][1], line1[0][0]], [line1[1][1], line1[1][0]]]
+            r2 = np.array([p_line[1][0] - p_line[0][0], p_line[1][1] - p_line[0][1]])
+            rn2 = r2 / np.linalg.norm(r2)
+            d = np.array([r1[0] - line2[0][0], r1[1] - line2[0][1]])
+            d_n = np.dot(d, rn2) * rn2
+            d_pn = d - np.dot(d, rn2) * rn2
+            r3 = r1 - d_n - d_pn
+            return rn2, d, d_n, d_pn, r3
+        return None
+
 
 class Node:
     def __init__(self, id, label, priority):
