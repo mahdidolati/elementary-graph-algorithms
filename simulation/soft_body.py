@@ -64,7 +64,7 @@ class Polygon:
             if e0[0, 0] < x < e1[0, 0] or e1[0, 0] < x < e0[0, 0]:
                 m = (e1[1, 0] - e0[1, 0]) / (e1[0, 0] - e0[0, 0])
                 yp = (x - e0[0, 0]) * m + e0[1, 0]
-                if yp == y:
+                if np.abs(yp - y) < 0.0001:
                     return False
                 if yp < y:
                     n += 1
@@ -103,10 +103,16 @@ class Point:
         self.mass = np.random.uniform(1, 2, 1)[0]
 
     def set_force_gravity(self):
-        self.force[1, 0] = self.force[1, 0] - self.mass * 0.05
+        self.force[1, 0] = self.force[1, 0] - self.mass * 0.08
 
-    def reset_velocity(self):
-        self.velocity = np.zeros(2, dtype='float64').reshape((2, 1))
+    def reset_velocity(self, direction=None):
+        if direction is None:
+            self.velocity = np.zeros(2, dtype='float64').reshape((2, 1))
+        else:
+            d = direction / np.linalg.norm(direction)
+            t = np.dot(np.transpose(self.velocity), d) * d
+            self.velocity -= t
+            # print("v: {}".format(np.transpose(self.velocity)))
 
     def set_velocity(self, dt):
         self.velocity = self.velocity + self.force * dt / self.mass
@@ -171,6 +177,7 @@ class SoftRectangle:
         for n in self.g.nodes():
             self.g.nodes[n]['p'].reset_force()
             self.g.nodes[n]['p'].set_force_gravity()
+            # print("\t\tforce: {}".format(np.transpose(self.g.nodes[n]['p'].force)))
         for e in self.g.edges():
             self.g.edges[e]['s'].set_force_spring()
 
@@ -181,15 +188,15 @@ class SoftRectangle:
             if p.point_inside(n_p):
                 t, hl = p.get_intersection(c_p, n_p)
                 g = Geometry()
-                rf = g.get_force_reflection(hl, self.g.nodes[n]['p'].force)
-                rfnorm = np.linalg.norm(rf)
-                rfn = rf / rfnorm
-                ff = np.linalg.norm(self.g.nodes[n]['p'].force)
-                ffn = np.linalg.norm(rfn)
-                self.g.nodes[n]['p'].latent_force = ff * rfn
-                self.g.nodes[n]['p'].reset_velocity()
+                force = self.g.nodes[n]['p'].force
+                _, p_dir = g.get_force_reflection(hl, force)
+                f = -1 * np.dot(np.transpose(force), p_dir) * p_dir
+                # print("conflict: d: {}, f: {}".format(np.transpose(n_p - c_p), np.transpose(f)))
+                self.g.nodes[n]['p'].latent_force = f
+                self.g.nodes[n]['p'].reset_velocity(p_dir)
                 self.g.nodes[n]['p'].position = t
             else:
+                # print("no conflict: d: {}, c_p: {}, n_p: {}".format(np.transpose(n_p - c_p), np.transpose(c_p), np.transpose(n_p)))
                 self.g.nodes[n]['p'].latent_force = np.zeros(2, dtype='float64').reshape((2, 1))
                 self.g.nodes[n]['p'].set_velocity(dt)
                 self.g.nodes[n]['p'].set_position(dt)
@@ -250,15 +257,25 @@ def reflect_t1():
     print(g.get_reflection(line1, line2))
 
 
-def main():
+def reflect_t2():
     p1 = np.array([0, 2]).reshape((2, 1))
     p2 = np.array([2, 0]).reshape((2, 1))
-    p3 = np.array([1, 1]).reshape((2, 1))
-    p4 = np.array([1, 0]).reshape((2, 1))
+    p3 = np.array([0, -2]).reshape((2, 1))
     line1 = [p1, p2]
-    line2 = [p3, p4]
     g = Geometry()
-    print(g.get_reflection(line1, line2))
+    print(g.get_force_reflection(line1, p3))
+
+
+def main():
+    s = SoftRectangle(1, 1)
+    p = Polygon()
+    p.add_edges([
+        [(-1, -2), (3, -2)], [(3, -2), (-1, 2)], [(-1, 2), (-1, -2)]
+    ])
+    dt = 0.1
+    for _ in range(250):
+        s.step()
+        s.update_positions(dt, p)
 
 
 if __name__ == "__main__":
