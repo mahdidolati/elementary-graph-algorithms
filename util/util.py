@@ -41,16 +41,38 @@ class Geometry:
     def get_reflection(self, line1, line2):
         r1 = self.get_line_segment_intersection(line1, line2)
         if r1 is not None:
-            p_line = [[line1[0][1], line1[0][0]], [line1[1][1], line1[1][0]]]
-            r2 = np.array([p_line[1][0] - p_line[0][0], p_line[1][1] - p_line[0][1]])
+            p_line = [[line1[0][1, 0], line1[0][0, 0]], [line1[1][1, 0], line1[1][0, 0]]]
+            r2 = np.array([p_line[1][0] - p_line[0][0], p_line[1][1] - p_line[0][1]]).reshape((2, 1))
             rn2 = r2 / np.linalg.norm(r2)
-            d = np.array([r1[0] - line2[0][0], r1[1] - line2[0][1]])
-            d_n = np.dot(d, rn2) * rn2
-            d_pn = d - np.dot(d, rn2) * rn2
-            r3 = r1 - d_n - d_pn
-            return rn2, d, d_n, d_pn, r3
-        return None
+            if np.linalg.norm(r1-line2[0]) > 0.00001:
+                d = np.array([r1[0, 0] - line2[0][0, 0], r1[1, 0] - line2[0][1, 0]]).reshape((2, 1))
+            else:
+                d = np.array([line2[1][0, 0] - r1[0, 0], line2[1][1, 0] - r1[1, 0]]).reshape((2, 1))
+            d_n = np.dot(np.transpose(d), rn2) * rn2
+            d_pn = -1 * d + 2 * np.dot(np.transpose(d), rn2) * rn2
+            return d_pn, r1 + d_pn
+            # vals = [d_n + d_pn, -1 * d_n + d_pn, d_n - d_pn, -1 * d_n - d_pn]
+            # for v in vals:
+            #     r3 = r1 + v
+            #     print(":", r1, v, r3, line2)
+            #     if np.linalg.norm(r3 - line2[0]) > 0.0 and np.linalg.norm(r3 - line2[1]) > 0.0:
+            #         if self.get_line_segment_intersection(line1, [line2[0], r3]) is None:
+            #             return v, r3
+            #         if self.get_line_segment_intersection(line1, [line2[1], r3]) is not None:
+            #             return v, r3
+        return None, None
 
+    def get_angle(self, v1, v2):
+        v1_u = v1 / np.linalg.norm(v1)
+        v2_u = v2 / np.linalg.norm(v2)
+        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+    def get_force_reflection(self, line1, force):
+        p_line = [[line1[0][1, 0], line1[0][0, 0]], [line1[1][1, 0], line1[1][0, 0]]]
+        l_dir = np.array([line1[1][0] - line1[0][0], line1[1][1] - line1[0][1]]).reshape((2, 1))
+        p_dir = np.array([p_line[1][0] - p_line[0][0], p_line[1][1] - p_line[0][1]]).reshape((2, 1))
+        p_dir_norm = p_dir / np.linalg.norm(p_dir)
+        return -1 * np.dot(np.transpose(force), p_dir_norm) * p_dir_norm
 
 class Node:
     def __init__(self, id, label, priority):
