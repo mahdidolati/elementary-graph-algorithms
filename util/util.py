@@ -68,9 +68,8 @@ class Geometry:
         return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
     def get_force_reflection(self, line1, force):
-        p_line = [[line1[0][1, 0], line1[0][0, 0]], [line1[1][1, 0], line1[1][0, 0]]]
-        l_dir = np.array([line1[1][0] - line1[0][0], line1[1][1] - line1[0][1]]).reshape((2, 1))
-        p_dir = np.array([p_line[1][0] - p_line[0][0], p_line[1][1] - p_line[0][1]]).reshape((2, 1))
+        p_line = [[line1[1][1, 0], line1[1][0, 0]], [line1[0][1, 0], line1[0][0, 0]]]
+        p_dir = np.array([p_line[0][0] - p_line[1][0], p_line[0][1] - p_line[1][1]]).reshape((2, 1))
         p_dir_norm = p_dir / np.linalg.norm(p_dir)
         return -1 * np.dot(np.transpose(force), p_dir_norm) * p_dir_norm
 
