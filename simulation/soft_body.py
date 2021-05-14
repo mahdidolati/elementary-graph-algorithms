@@ -100,10 +100,13 @@ class Point:
         self.velocity = np.zeros(2, dtype='float64').reshape((2, 1))
         self.force = np.zeros(2, dtype='float64').reshape((2, 1))
         self.latent_force = np.zeros(2, dtype='float64').reshape((2, 1))
-        self.mass = np.random.uniform(1, 2, 1)[0]
+        self.mass = 1.0
 
     def set_force_gravity(self):
-        self.force[1, 0] = self.force[1, 0] - self.mass * 0.08
+        self.force[1, 0] = self.force[1, 0] - self.mass * 0.15
+
+    def shift(self, dx, dy):
+        self.position += np.array([dx, dy], dtype='float64').reshape((2, 1))
 
     def reset_velocity(self, direction=None):
         if direction is None:
@@ -112,7 +115,6 @@ class Point:
             d = direction / np.linalg.norm(direction)
             t = np.dot(np.transpose(self.velocity), d) * d
             self.velocity -= t
-            # print("v: {}".format(np.transpose(self.velocity)))
 
     def set_velocity(self, dt):
         self.velocity = self.velocity + self.force * dt / self.mass
@@ -136,12 +138,12 @@ class Point:
 
 
 class Spring:
-    def __init__(self, A, B):
+    def __init__(self, A, B, ks):
         self.A = A
         self.B = B
         self.L0 = np.linalg.norm(self.A.position - self.B.position)
-        self.ks = 8
-        self.kd = 0.3
+        self.ks = ks
+        self.kd = 0.9
 
     def set_force_spring(self):
         norm1 = np.linalg.norm(self.A.position - self.B.position)
@@ -157,27 +159,33 @@ class Spring:
 
 
 class SoftRectangle:
-    def __init__(self, w, h):
+    def __init__(self, w, h, ks):
         self.lines = set()
         self.g = nx.Graph()
         for i in range(w):
             for j in range(h):
                 c = Circle(radius=0.1)
-                x = 0.7 * i
-                y = 0.7 * j + 2.5
+                x = 0.5 * i
+                y = 0.5 * j
                 c.move_to(x * RIGHT + y * UP)
                 c.set_fill(PINK, opacity=0.5)
                 self.g.add_node((i, j), p=Point(x, y), c=c)
-                neighbors = [(i-1, j), (i, j-1), (i-1, j-1)]
+                if i % 2 == 0:
+                    neighbors = [(i-1, j), (i, j-1), (i-1, j-1)]
+                else:
+                    neighbors = [(i - 1, j), (i, j - 1), (i - 1, j + 1)]
                 for n in neighbors:
-                    if n[0] >= 0 and n[1] >= 0:
-                        self.g.add_edge((i, j), n, s=Spring(self.g.nodes[(i, j)]['p'], self.g.nodes[n]['p']))
+                    if n[0] >= 0 and 0 <= n[1] < h:
+                        self.g.add_edge((i, j), n, s=Spring(self.g.nodes[(i, j)]['p'], self.g.nodes[n]['p'], ks))
+
+    def shift(self, dx, dy):
+        for n in self.g.nodes():
+            self.g.nodes[n]['p'].shift(dx, dy)
 
     def step(self):
         for n in self.g.nodes():
             self.g.nodes[n]['p'].reset_force()
             self.g.nodes[n]['p'].set_force_gravity()
-            # print("\t\tforce: {}".format(np.transpose(self.g.nodes[n]['p'].force)))
         for e in self.g.edges():
             self.g.edges[e]['s'].set_force_spring()
 
@@ -189,14 +197,12 @@ class SoftRectangle:
                 t, hl = p.get_intersection(c_p, n_p)
                 g = Geometry()
                 force = self.g.nodes[n]['p'].force
-                _, p_dir = g.get_force_reflection(hl, force)
+                p_dir = g.get_force_reflection(hl)
                 f = -1 * np.dot(np.transpose(force), p_dir) * p_dir
-                # print("conflict: d: {}, f: {}".format(np.transpose(n_p - c_p), np.transpose(f)))
                 self.g.nodes[n]['p'].latent_force = f
                 self.g.nodes[n]['p'].reset_velocity(p_dir)
                 self.g.nodes[n]['p'].position = t
             else:
-                # print("no conflict: d: {}, c_p: {}, n_p: {}".format(np.transpose(n_p - c_p), np.transpose(c_p), np.transpose(n_p)))
                 self.g.nodes[n]['p'].latent_force = np.zeros(2, dtype='float64').reshape((2, 1))
                 self.g.nodes[n]['p'].set_velocity(dt)
                 self.g.nodes[n]['p'].set_position(dt)
@@ -221,14 +227,27 @@ class SoftRectangle:
 
 
 class SoftBody(Scene):
+    def draw_body(self, body):
+        for n in body.g.nodes():
+            self.add(body.g.nodes[n]['c'])
+        body.move_anim(self)
+
+    def move_body(self, body, dt, p):
+        body.step()
+        body.update_positions(dt, p)
+        body.move_anim(self)
+
     def construct(self):
-        s = SoftRectangle(3, 3)
-        for n in s.g.nodes():
-            self.add(s.g.nodes[n]['c'])
-        s.move_anim(self)
+        bodies = [SoftRectangle(3, 3, 72), SoftRectangle(3, 3, 24), SoftRectangle(3, 3, 8)]
+        body_shifts = [(-4, 1.5), (-1, 1.5), (2, 1.5)]
+        for i in range(len(bodies)):
+            bodies[i].shift(*body_shifts[i])
+            self.draw_body(bodies[i])
+
         p = Polygon()
         p.add_edges([
-            [(-1, -2), (3, -2)], [(3, -2), (-1, 2)], [(-1, 2), (-1, -2)]
+            # [(-1, -2), (3, -2)], [(3, -2), (-1, 2)], [(-1, 2), (-1, -2)]
+            [(-5, -2), (4, -2)], [(4, -2), (4, -1)], [(4, -1), (-5, -1)], [(-5, -1), (-5, -2)]
         ])
         p.draw(self)
         self.wait(1)
@@ -238,45 +257,12 @@ class SoftBody(Scene):
         # s.move_anim(self)
         # self.wait(1)
 
-        dt = 0.1
-        for _ in range(250):
-            s.step()
-            s.update_positions(dt, p)
-            s.move_anim(self)
+        dt = 0.05
+        for _ in range(40):
+            for b in bodies:
+                self.move_body(b, dt, p)
             self.wait(2 * dt)
 
 
-def reflect_t1():
-    p1 = np.array([-1, 1]).reshape((2, 1))
-    p2 = np.array([1, 1]).reshape((2, 1))
-    p3 = np.array([1, 2]).reshape((2, 1))
-    p4 = np.array([-1, 0]).reshape((2, 1))
-    line1 = [p2, p1]
-    line2 = [p3, p4]
-    g = Geometry()
-    print(g.get_reflection(line1, line2))
-
-
-def reflect_t2():
-    p1 = np.array([0, 2]).reshape((2, 1))
-    p2 = np.array([2, 0]).reshape((2, 1))
-    p3 = np.array([0, -2]).reshape((2, 1))
-    line1 = [p1, p2]
-    g = Geometry()
-    print(g.get_force_reflection(line1, p3))
-
-
-def main():
-    s = SoftRectangle(1, 1)
-    p = Polygon()
-    p.add_edges([
-        [(-1, -2), (3, -2)], [(3, -2), (-1, 2)], [(-1, 2), (-1, -2)]
-    ])
-    dt = 0.1
-    for _ in range(250):
-        s.step()
-        s.update_positions(dt, p)
-
-
 if __name__ == "__main__":
-    main()
+    pass
