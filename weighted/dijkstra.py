@@ -127,7 +127,7 @@ class Dijkstra(Scene):
                     line = Line(r1, r2).set_stroke(width=7).set_color(BLUE)
                     self.add(Circle(radius=0.05).move_to(r1).set_fill(PINK, opacity=1.0))
                     self.play(
-                            ShowCreation(line),
+                            Create(line),
                             ApplyMethod(grid.edges[(h.id, n)]["w_label"].set_color, BLUE),
                             run_time=0.5
                     )

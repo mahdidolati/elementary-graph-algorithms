@@ -103,7 +103,7 @@ class Point:
         self.mass = 1.0
 
     def set_force_gravity(self):
-        self.force[1, 0] = self.force[1, 0] - self.mass * 0.15
+        self.force[1, 0] = self.force[1, 0] - self.mass * 0.25
 
     def shift(self, dx, dy):
         self.position += np.array([dx, dy], dtype='float64').reshape((2, 1))
@@ -258,7 +258,7 @@ class SoftBody(Scene):
         # self.wait(1)
 
         dt = 0.05
-        for _ in range(40):
+        for _ in range(400):
             for b in bodies:
                 self.move_body(b, dt, p)
             self.wait(2 * dt)

@@ -28,6 +28,8 @@ Currently, following examples are available and have been tested with Manim Comm
 .\runner.bat .\dfs\dfs_1.py Dfs
 .\runner.bat .\dfs\dfs_2.py Dfs
 .\runner.bat .\dfs\dfs_3.py Dfs
+.\runner.bat simulation\soft_body.py SoftBody
+.\runner.bat weighted\dijkstra.py Dijkstra
 ```
 
 You should change the `runner.bat` file to select the video quality.
