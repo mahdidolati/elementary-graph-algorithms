@@ -107,7 +107,7 @@ class Dfs(Scene):
                 self.add(Circle(radius=0.05).move_to(r1).set_fill(PINK, opacity=1.0))
                 if n not in q and n not in self.dfs:
                     line.set_color(YELLOW)
-                    self.play(ShowCreation(line), run_time=0.5)
+                    self.play(Create(line), run_time=0.5)
                     self.grid.nodes[n]["circle"].set_color(GREEN)
                     self.play(ApplyMethod(self.grid.nodes[n]["circle"].scale, 1.1), run_time=0.25)
                     self.dfs_code.highlight([5])
@@ -123,7 +123,7 @@ class Dfs(Scene):
                     had_push = True
                 else:
                     line.set_color(BLUE)
-                    self.play(ShowCreation(line), run_time=0.5)
+                    self.play(Create(line), run_time=0.5)
                     self.play(ApplyMethod(self.grid.nodes[n]["circle"].scale, 1.1), run_time=0.25)
                     self.dfs_code.highlight([5])
                     self.play(

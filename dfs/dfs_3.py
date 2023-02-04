@@ -104,7 +104,7 @@ class Dfs(Scene):
                     r1, r2 = self.grid.get_line_coords(cur, n)
                     line = Line(r1, r2).set_stroke(width=7).set_color(BLUE)
                     self.add(Circle(radius=0.05).move_to(r1).set_fill(PINK, opacity=1.0))
-                    self.play(ShowCreation(line), run_time=0.5)
+                    self.play(Create(line), run_time=0.5)
                     self.play(ApplyMethod(self.grid.nodes[n]["circle"].scale, 1.1), run_time=0.25)
                     if n not in q and n not in self.dfs:
                         self.play(ApplyMethod(self.grid.nodes[n]["circle"].set_color, GREEN), run_time=0.25)

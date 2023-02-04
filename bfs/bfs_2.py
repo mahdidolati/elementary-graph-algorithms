@@ -82,7 +82,7 @@ class Bfs(Scene):
                 line = Line(*grid.get_line_coords(cur, n)).set_color(BLUE).set_stroke(width=7)
                 if n not in bfs and n not in q:
                     line.set_color(YELLOW)
-                self.play(ShowCreation(line), run_time=0.5)
+                self.play(Create(line), run_time=0.5)
                 if n not in bfs and n not in q:
                     grid.edges[(cur, n)]["line"].set_color(YELLOW)
                 if n not in bfs and n not in q:

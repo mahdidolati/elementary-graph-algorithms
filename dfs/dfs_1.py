@@ -40,7 +40,7 @@ class Dfs(Scene):
             line = Line(*self.grid.get_line_coords(cur, n)).set_stroke(width=7)
             if n not in self.mark:
                 line.set_color(YELLOW)
-                self.play(ShowCreation(line), run_time=0.5)
+                self.play(Create(line), run_time=0.5)
                 self.grid.edges[(cur, n)]["line"].set_color(YELLOW)
                 self.play(ApplyMethod(self.grid.nodes[n]["circle"].scale, 1.1), run_time=0.25)
                 self.dfs_code.highlight([6])
@@ -49,7 +49,7 @@ class Dfs(Scene):
                 self.play(FadeIn(n_eq))
             else:
                 line.set_color(BLUE)
-                self.play(ShowCreation(line), run_time=0.5)
+                self.play(Create(line), run_time=0.5)
                 self.play(ApplyMethod(self.grid.nodes[n]["circle"].scale, 1.1), run_time=0.25)
                 self.dfs_code.highlight([6])
                 self.play(ApplyMethod(self.grid.nodes[n]["circle"].scale, 1.0 / 1.1), run_time=0.5)
